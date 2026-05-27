@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Header from '../components/Header';
 import { useCartStore } from '../store/useCartStore';
@@ -62,15 +62,13 @@ function StorefrontContent() {
   const [loading, setLoading] = useState(false);
 
   // Location form
-  const [latInput, setLatInput] = useState('40.7128'); // Times Square, NY
-  const [lngInput, setLngInput] = useState('-74.0060');
-  const [addressInput, setAddressInput] = useState('Times Square, Manhattan, NY');
+  const [latInput, setLatInput] = useState('');
+  const [lngInput, setLngInput] = useState('');
+  const [addressInput, setAddressInput] = useState('');
+  const initialized = useRef(false);
 
   const presets = [
     { name: 'Manhattan (NY)', lat: '40.7128', lng: '-74.0060', address: 'Times Square, Manhattan, NY' },
-    { name: 'Brooklyn (NY)', lat: '40.6782', lng: '-73.9442', address: 'Flatbush Ave, Brooklyn, NY' },
-    { name: 'Queens (NY)', lat: '40.7282', lng: '-73.7949', address: 'Flushing, Queens, NY' },
-    { name: 'Los Angeles (CA) - Out of Bounds', lat: '34.0522', lng: '-118.2437', address: 'Downtown Los Angeles, CA' },
   ];
 
   const handleApplyLocation = useCallback(async (lat: number, lng: number, address: string) => {
@@ -115,6 +113,9 @@ function StorefrontContent() {
   }, [setLocation]);
 
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+
     if (location) {
       setLatInput(location.latitude.toString());
       setLngInput(location.longitude.toString());
