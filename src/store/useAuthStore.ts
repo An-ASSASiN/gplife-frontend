@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export interface UserProfile {
   id: string;
@@ -15,49 +16,25 @@ interface AuthState {
   isAuthenticated: boolean;
   setAuth: (user: UserProfile, accessToken: string, refreshToken: string) => void;
   clearAuth: () => void;
-  loadAuthFromStorage: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  accessToken: null,
-  refreshToken: null,
-  isAuthenticated: false,
-
-  setAuth: (user, accessToken, refreshToken) => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-      localStorage.setItem('user', JSON.stringify(user));
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+      isAuthenticated: false,
+      setAuth: (user, accessToken, refreshToken) => {
+        set({ user, accessToken, refreshToken, isAuthenticated: true });
+      },
+      clearAuth: () => {
+        set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
+      },
+    }),
+    {
+      name: 'auth-storage',
+      storage: createJSONStorage(() => sessionStorage),
     }
-    set({ user, accessToken, refreshToken, isAuthenticated: true });
-  },
-
-  clearAuth: () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-    }
-    set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
-  },
-
-  loadAuthFromStorage: () => {
-    if (typeof window !== 'undefined') {
-      const accessToken = localStorage.getItem('accessToken');
-      const refreshToken = localStorage.getItem('refreshToken');
-      const userStr = localStorage.getItem('user');
-
-      if (accessToken && refreshToken && userStr) {
-        try {
-          const user = JSON.parse(userStr) as UserProfile;
-          set({ user, accessToken, refreshToken, isAuthenticated: true });
-        } catch (e) {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
-        }
-      }
-    }
-  },
-}));
+  )
+);

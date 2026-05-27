@@ -8,15 +8,11 @@ import { api } from '../../utils/api';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setAuth, isAuthenticated, user, loadAuthFromStorage } = useAuthStore();
+  const { setAuth, isAuthenticated, user } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    loadAuthFromStorage();
-  }, [loadAuthFromStorage]);
 
   useEffect(() => {
     if (isAuthenticated && user) {

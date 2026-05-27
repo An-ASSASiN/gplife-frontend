@@ -48,7 +48,7 @@ interface AffiliateProfile {
 
 export default function AffiliateDashboard() {
   const router = useRouter();
-  const { user, isAuthenticated, loadAuthFromStorage } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
 
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<AffiliateProfile | null>(null);
@@ -64,10 +64,6 @@ export default function AffiliateDashboard() {
 
   // Copy status
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    loadAuthFromStorage();
-  }, [loadAuthFromStorage]);
 
   useEffect(() => {
     if (!isAuthenticated) {

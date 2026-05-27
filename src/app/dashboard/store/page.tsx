@@ -22,6 +22,22 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 
+interface StoreStaff {
+  id: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+interface Store {
+  id: string;
+  code: string;
+  name: string;
+  staff: StoreStaff[];
+}
+
 interface ProductInventory {
   id: string; // productId
   sku: string;
@@ -85,13 +101,13 @@ interface LedgerLine {
 
 export default function StoreOperatorDashboard() {
   const router = useRouter();
-  const { user, isAuthenticated, loadAuthFromStorage } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
 
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'orders' | 'inventory' | 'restock' | 'ledger'>('orders');
 
   // Mapped store state
-  const [myStore, setMyStore] = useState<any | null>(null);
+  const [myStore, setMyStore] = useState<Store | null>(null);
 
   // Data states
   const [orders, setOrders] = useState<Order[]>([]);
@@ -110,10 +126,6 @@ export default function StoreOperatorDashboard() {
   const [restockCart, setRestockCart] = useState<{ productId: string; title: string; quantity: number }[]>([]);
 
   useEffect(() => {
-    loadAuthFromStorage();
-  }, [loadAuthFromStorage]);
-
-  useEffect(() => {
     // Only allow STORE_ADMIN, STORE_STAFF, or SUPERADMIN bypass
     if (!isAuthenticated) {
       router.push('/login');
@@ -130,13 +142,14 @@ export default function StoreOperatorDashboard() {
   const resolveStoreAndLoad = async () => {
     setLoading(true);
     try {
-      const storesRes = await api.get('/stores');
+      const storesRes = await api.get<Store[]>('/stores');
       const allStores = storesRes.data;
 
       // Find store where active user id is mapped as staff
-      const storeMatch = allStores.find((s: any) => 
-        s.staff.some((member: any) => member.user.id === user?.id)
-      ) || allStores[0]; // Fallback to first store for superadmin testing
+      const storeMatch = allStores.find((s) =>
+        s.staff.some((member) => member.user.id === user?.id)
+      // Fallback to the first store ONLY if the user is a SUPERADMIN (for testing/bypass)
+      ) || (user?.role === 'SUPERADMIN' ? allStores[0] : undefined);
 
       if (storeMatch) {
         setMyStore(storeMatch);

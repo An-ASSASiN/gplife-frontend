@@ -67,7 +67,7 @@ interface User {
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
-  const { user, isAuthenticated, loadAuthFromStorage, clearAuth } = useAuthStore();
+  const { user, isAuthenticated, clearAuth } = useAuthStore();
 
   const [activeTab, setActiveTab] = useState<'main' | 'stores' | 'accounts' | 'payouts' | 'restocks' | 'ledger'>('main');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -97,10 +97,6 @@ export default function SuperAdminDashboard() {
 
   const [assignUser, setAssignUser] = useState('');
   const [assignStore, setAssignStore] = useState('');
-
-  useEffect(() => {
-    loadAuthFromStorage();
-  }, [loadAuthFromStorage]);
 
   useEffect(() => {
     // Restrict access to SUPERADMIN only
